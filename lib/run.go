@@ -200,6 +200,10 @@ func (a *ACBuild) renderACI(insecure, debug bool) ([]string, error) {
 	for _, dep := range man.Dependencies {
 		err := reg.FetchAndRender(dep.ImageName, dep.Labels, dep.Size)
 		if err != nil {
+			if err.Error() == "bad HTTP status code: 404" {
+				l, _ := dep.Labels.Get("version")
+				return nil, fmt.Errorf("dependency %q doesn't appear to exist: %v", string(dep.ImageName)+":"+l, err)
+			}
 			return nil, err
 		}
 
